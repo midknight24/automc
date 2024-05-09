@@ -1,4 +1,4 @@
-from sqlmodel import SQLModel,  Field
+from sqlmodel import SQLModel, Field
 from datetime import datetime
 from typing import Optional
 
@@ -9,4 +9,10 @@ class Base(SQLModel):
 
 
 class Prompt(Base, table=True):
-    pass
+    template: str = Field()
+
+class LLMBackend(Base, table=True):
+    name: str = Field()
+    description: str = Field()
+    url: str = Field()
+    secret: str = Field()
