@@ -1,4 +1,5 @@
-from sqlmodel import SQLModel, Field
+from sqlmodel import SQLModel, Field, TEXT
+from sqlalchemy import Column
 from datetime import datetime
 from typing import Optional
 
@@ -9,7 +10,7 @@ class Base(SQLModel):
 
 
 class Prompt(Base, table=True):
-    template: str = Field()
+    template: str = Field(sa_column=Column(TEXT))
 
 class LLMBackend(Base, table=True):
     name: str = Field()
