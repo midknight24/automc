@@ -29,14 +29,16 @@ def upsert_prompt(session: Session, prompt: PromptUpsert):
             session.add(prompt)
         session.commit()
 
-def list_llmbackend(session: Session):
+def list_llmbackends(session: Session):
     with session:
-        llms = select(LLMBackend)
+        statement = select(LLMBackend)
+        llms = session.exec(statement)
         return list(llms)
     
 def list_prompts(session: Session):
     with session:
-        prompts = select(Prompt)
+        statement = select(Prompt)
+        prompts = session.exec(statement)
         return list(prompts)
 
 

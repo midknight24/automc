@@ -1,4 +1,4 @@
-from sqlmodel import SQLModel, Field, TEXT
+from sqlmodel import SQLModel, Field, TEXT, create_engine, Session
 from sqlalchemy import Column, event
 from datetime import datetime
 from typing import Optional
@@ -21,3 +21,12 @@ class LLMBackend(Base, table=True):
     description: str = Field()
     url: str = Field()
     secret: str = Field()
+
+def get_db():
+    from .config import DATABASE
+    engine = create_engine(DATABASE)
+    db = Session(engine)
+    try:
+        yield db
+    finally:
+        db.close()

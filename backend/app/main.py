@@ -1,28 +1,17 @@
-from functools import wraps
-from fastapi import FastAPI, Depends
-from .db import get_session, Session
-from . import crud
-from . import model
+import uvicorn
+from fastapi import FastAPI
 
+from . import api
 
 app = FastAPI()
 
-
-def get_db():
-    db = get_session()
-    try:
-        yield db
-    finally:
-        db.close()
+app.include_router(api.llmbackendRouter)
+app.include_router(api.promptRouter)
 
 
-def exception_wrapper(fn):
-    # necessary!
-    @wraps(fn)
-    def f(*args, **kwargs):
-        try:
-            return fn(*args, **kwargs)
-        except Exception as e:
-            print(e)
-            return str(e)
-    return f
+@app.get("/")
+def hello_world():
+        return "hello world!"
+
+if __name__ == "__main__":
+        uvicorn.run(app)
