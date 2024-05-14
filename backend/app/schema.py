@@ -8,7 +8,6 @@ class MetaBase(BaseModel):
     updated: datetime
 
 class Prompt(MetaBase):
-    id: int = None
     template: str
 
 class PromptUpsert(BaseModel):

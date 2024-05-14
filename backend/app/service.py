@@ -3,29 +3,38 @@ from .model import LLMBackend, Prompt
 from .schema import LLMBackendUpsert, PromptUpsert
 
 
-def upsert_llmbackend(session: Session, llm: LLMBackendUpsert):
+def upsert_llmbackend(session: Session, upsert: LLMBackendUpsert):
     with session:
-        if llm.id:
-            existing = session.get(LLMBackend, llm.id)
+        if upsert.id is not None:
+            existing = session.get(LLMBackend, upsert.id)
             if existing:
-                existing.name = llm.name
-                existing.description = llm.description
-                existing.url = llm.url
-                existing.secret = llm.secret
-            llm = existing
-        if llm:
+                existing.name = upsert.name
+                existing.description = upsert.description
+                existing.url = upsert.url
+                existing.secret = upsert.secret
+                session.add(existing)
+        else:
+            llm = LLMBackend(
+                name=upsert.name,
+                description=upsert.description,
+                url=upsert.url,
+                secret=upsert.secret
+            )
             session.add(llm)
         session.commit()
 
 
-def upsert_prompt(session: Session, prompt: PromptUpsert):
+def upsert_prompt(session: Session, upsert: PromptUpsert):
     with session:
-        if prompt.id:
-            existing = session.get(Prompt, prompt.id)
+        if upsert.id is not None:
+            existing = session.get(Prompt, upsert.id)
             if existing:
-                existing.template = prompt.template
-            prompt = existing
-        if prompt:
+                existing.template = upsert.template
+                session.add(existing)
+        else:
+            prompt = Prompt(
+                template=upsert.template
+            )
             session.add(prompt)
         session.commit()
 

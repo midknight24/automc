@@ -1,5 +1,6 @@
 from sqlmodel import SQLModel, Field, TEXT, create_engine, Session
 from sqlalchemy import Column, event
+from sqlalchemy.event import listen
 from datetime import datetime
 from typing import Optional
 
@@ -9,18 +10,23 @@ class Base(SQLModel):
     created: datetime = Field(default_factory=datetime.now)
     updated: datetime = Field(default_factory=datetime.now)
 
-@event.listens_for(Base, 'before_update')
-def auto_update(mapper, connection, target):
-    target.updated = datetime.now()
 
 class Prompt(Base, table=True):
     template: str = Field(sa_column=Column(TEXT))
+
+
 
 class LLMBackend(Base, table=True):
     name: str = Field()
     description: str = Field()
     url: str = Field()
     secret: str = Field()
+
+def update_time(mapper, connection, target):
+    target.updated = datetime.now()
+
+listen(Prompt, 'before_update', update_time)
+listen(LLMBackend, 'before_update', update_time)
 
 def get_db():
     from .config import DATABASE
