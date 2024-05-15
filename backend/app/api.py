@@ -11,6 +11,7 @@ llmbackendRouter = APIRouter(
 
 @llmbackendRouter.get("/")
 def get_llmbackend(db: Session = Depends(get_db)):
+    service = service.LLMBackendService()
     return service.list_llmbackends(db)
 
 

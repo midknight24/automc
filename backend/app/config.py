@@ -1,1 +1,1 @@
-DATABASE="mysql://root:root@localhost:3306/automc"
+DATABASE="mysql://root:root@localhost:33006/automc"
