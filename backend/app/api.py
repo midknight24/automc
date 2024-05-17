@@ -11,13 +11,14 @@ llmbackendRouter = APIRouter(
 
 @llmbackendRouter.get("/")
 def get_llmbackend(db: Session = Depends(get_db)):
-    service = service.LLMBackendService()
-    return service.list_llmbackends(db)
+    srv = service.LLMBackendService()
+    return srv.list(db)
 
 
 @llmbackendRouter.post("/")
 def upsert_llmbackend(llm: LLMBackendUpsert, db: Session = Depends(get_db)):
-    service.upsert_llmbackend(db, llm)
+    srv = service.LLMBackendService()
+    srv.upsert(db, llm.model_dump())
 
 
 promptRouter = APIRouter(
@@ -27,9 +28,11 @@ promptRouter = APIRouter(
 
 @promptRouter.get("/")
 def get_prompt(db: Session = Depends(get_db)):
-    return service.list_prompts(db)
+    srv = service.PromptService()
+    return srv.list(db)
 
 
 @promptRouter.post("/")
 def upsert_prompt(prompt: PromptUpsert, db: Session = Depends(get_db)):
-    service.upsert_prompt(db, prompt)
+    srv = service.PromptService()
+    srv.upsert(db, prompt.model_dump())
