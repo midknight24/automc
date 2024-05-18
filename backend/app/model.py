@@ -16,8 +16,8 @@ class Prompt(Base, table=True):
     template: str = Field(sa_column=Column(TEXT))
 
 class ModelVendor(Enum):
-    OPENAI = 1
-    CLAUDE = 2
+    OPENAI = "openai"
+    CLAUDE = "claude"
 
 class LLMBackend(Base, table=True):
     name: str = Field()

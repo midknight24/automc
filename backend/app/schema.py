@@ -1,6 +1,7 @@
 from pydantic import BaseModel
 from typing import Optional
 from datetime import datetime
+from .model import ModelVendor
 
 class MetaBase(BaseModel):
     id: int
@@ -19,6 +20,7 @@ class LLMBackend(MetaBase):
     description: str
     url: str
     secret: str
+    model_vendor: ModelVendor
 
     class Config:
         from_attributes = True
@@ -29,6 +31,7 @@ class LLMBackendUpsert(BaseModel):
     description: str
     url: str
     secret: str
+    model_vendor: ModelVendor
 
 
     class Config:

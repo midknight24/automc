@@ -7,6 +7,7 @@ app = FastAPI()
 
 app.include_router(api.llmbackendRouter)
 app.include_router(api.promptRouter)
+app.include_router(api.automcRouter)
 
 
 @app.get("/")
