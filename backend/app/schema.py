@@ -34,3 +34,7 @@ class LLMBackendUpsert(BaseModel):
     class Config:
         from_attributes = True
 
+class GenRequest(BaseModel):
+    llm_id: int
+    prompt_id: int
+    content: str

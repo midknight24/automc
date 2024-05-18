@@ -3,6 +3,7 @@ from sqlalchemy import Column, event
 from sqlalchemy.event import listen
 from datetime import datetime
 from typing import Optional
+from enum import Enum
 
 
 class Base(SQLModel):
@@ -14,13 +15,16 @@ class Base(SQLModel):
 class Prompt(Base, table=True):
     template: str = Field(sa_column=Column(TEXT))
 
-
+class ModelVendor(Enum):
+    OPENAI = 1
+    CLAUDE = 2
 
 class LLMBackend(Base, table=True):
     name: str = Field()
     description: str = Field()
     url: str = Field()
     secret: str = Field()
+    model_vendor: ModelVendor = Field()
 
 def update_time(mapper, connection, target):
     target.updated = datetime.now()

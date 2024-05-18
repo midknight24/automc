@@ -1,44 +1,53 @@
 from sqlmodel import Session, select, SQLModel
-from typing import Type, TypeVar, Generic, List
-from .model import LLMBackend, Prompt
-from .schema import LLMBackendUpsert, PromptUpsert
-from pydantic import BaseModel
+from langchain_core.pydantic_v1 import BaseModel, Field
+from langchain_core.prompts import ChatPromptTemplate
+from langchain_core.output_parsers import JsonOutputParser
+from langchain_openai import ChatOpenAI
+from .model import LLMBackend, Prompt, ModelVendor
 
-T = TypeVar('T', bound=SQLModel)
 
-class CRUDBase(Generic[T]):
+class CRUDBase():
+    session: Session
     model: SQLModel
 
-    def __init__(self):
+    def __init__(self, session):
         if not hasattr(self, 'model'):
             raise TypeError(f'model class attribute missing')
+        self.session = session
     
-    def list(self, session: Session):
-        with session:
+    def get(self, id):
+        with self.session:
+            existing = self.session.get(self.model, id)
+            return existing
+            
+
+
+    def list(self):
+        with self.session:
             statement = select(self.model)
-            results = session.exec(statement)
+            results = self.session.exec(statement)
             return list(results)
         
-    def upsert(self, session: Session, object: dict):
-        with session:
+    def upsert(self, object: dict):
+        with self.session:
             if 'id' in object and object['id'] is not None:
-                existing = session.get(self.model, object['id'])
+                existing = self.session.get(self.model, object['id'])
                 if existing:
                     for k, v in object.items():
                         setattr(existing, k, v)
-                    session.add(existing)
+                    self.session.add(existing)
             else:
                 newinstance = self.model(**object)
                 # newinstance = self.model(**object.model_dump())
-                session.add(newinstance)
-            session.commit()
+                self.session.add(newinstance)
+            self.session.commit()
 
-    def delete(self, session: Session, id: int):
-        with session:
-            object = session.get(self.model, id)
+    def delete(self, id: int):
+        with self.session:
+            object = self.session.get(self.model, id)
             if object:
-                session.delete(object)
-            session.commit()
+                self.session.delete(object)
+            self.session.commit()
 
 class LLMBackendService(CRUDBase):
     model = LLMBackend
@@ -46,8 +55,36 @@ class LLMBackendService(CRUDBase):
 class PromptService(CRUDBase):
     model = Prompt
 
+class Answer(BaseModel):
+    choice: str = Field(description="正确选项的编号")
+    why: str = Field(description="正确选项是问题答案的解释")
+
+class MultiChoice(BaseModel):
+    question: str = Field(description="选择题的题干")
+    choices: str = Field(description="选择题的选项，包含英文编号和选项描述")
+    answers: Answer = Field(description="选择题的答案")
 
 
-
+class MultiChoiceService():
+    def __init__(self, llm: LLMBackend, prompt: Prompt):
+        self.llm = llm
+        self.prompt = prompt
         
+
+    def invoke(self, content: str):
+        if "{content}" not in self.prompt.template:
+            raise TypeError("'{content}' must be in prompt template")
+        prompt = ChatPromptTemplate.from_template(template=self.prompt.template)
+        llm = None
+        if self.llm.model_vendor == ModelVendor.OPENAI:
+            from vendor import OpenAIProxy
+            llm = OpenAIProxy().chat_model(url=self.llm.url, key=self.llm.secret)
+        if not llm:
+            raise TypeError("unsupported llm vendor")
+        
+        parser = JsonOutputParser(pydantic_object=MultiChoice)
+
+        chain = prompt | llm | parser
+        chain.invoke({'content': content})
+
     
