@@ -2,6 +2,7 @@ from abc import ABC, abstractmethod
 from langchain_core.language_models.chat_models import BaseChatModel
 from langchain_openai import ChatOpenAI
 
+
 class ModelProxy(ABC):
     @abstractmethod
     def chat_model(self, **kwargs):
@@ -19,6 +20,6 @@ class OpenAIProxy(ModelProxy):
             raise TypeError("url param missing")
         if "key" not in kwargs:
             raise TypeError("key param missing")
-        llm = ChatOpenAI(base_url=kwargs["url"], api_key=kwargs["key"])
+        llm = ChatOpenAI(openai_api_base=kwargs["url"], openai_api_key=kwargs["key"], model="gpt-4o")
         return llm
         

@@ -4,7 +4,7 @@ from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.output_parsers import JsonOutputParser
 from langchain_openai import ChatOpenAI
 from .model import LLMBackend, Prompt, ModelVendor
-
+import langchain
 
 class CRUDBase():
     session: Session
@@ -77,13 +77,13 @@ class MultiChoiceService():
         prompt = ChatPromptTemplate.from_template(template=self.prompt.template)
         llm = None
         if self.llm.model_vendor == ModelVendor.OPENAI:
-            from vendor import OpenAIProxy
+            from .vendor import OpenAIProxy
             llm = OpenAIProxy().chat_model(url=self.llm.url, key=self.llm.secret)
         if not llm:
             raise TypeError("unsupported llm vendor")
         
         parser = JsonOutputParser(pydantic_object=MultiChoice)
-
+        langchain.debug = True
         chain = prompt | llm | parser
         chain.invoke({'content': content})
 
