@@ -20,6 +20,8 @@ class OpenAIProxy(ModelProxy):
             raise TypeError("url param missing")
         if "key" not in kwargs:
             raise TypeError("key param missing")
-        llm = ChatOpenAI(openai_api_base=kwargs["url"], openai_api_key=kwargs["key"], model="gpt-4o")
+        if "model" not in kwargs:
+            raise TypeError("model param missing")
+        llm = ChatOpenAI(openai_api_base=kwargs["url"], openai_api_key=kwargs["key"], model=kwargs["model"])
         return llm
         

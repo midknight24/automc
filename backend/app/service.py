@@ -66,19 +66,19 @@ class MultiChoice(BaseModel):
 
 
 class MultiChoiceService():
-    def __init__(self, llm: LLMBackend, prompt: Prompt):
+    def __init__(self, llm: LLMBackend, prompt: Prompt, model: str):
         self.llm = llm
         self.prompt = prompt
         
 
-    def invoke(self, content: str):
+    def invoke(self, content: str, model: str):
         if "{content}" not in self.prompt.template:
             raise TypeError("'{content}' must be in prompt template")
         prompt = ChatPromptTemplate.from_template(template=self.prompt.template)
         llm = None
         if self.llm.model_vendor == ModelVendor.OPENAI:
             from .vendor import OpenAIProxy
-            llm = OpenAIProxy().chat_model(url=self.llm.url, key=self.llm.secret)
+            llm = OpenAIProxy().chat_model(url=self.llm.url, key=self.llm.secret, model=model)
         if not llm:
             raise TypeError("unsupported llm vendor")
         
