@@ -17,7 +17,7 @@ class Prompt(Base, table=True):
 
 class ModelVendor(Enum):
     OPENAI = "openai"
-    CLAUDE = "claude"
+    ANTHROPIC = "anthropic"
 
 class LLMBackend(Base, table=True):
     name: str = Field()

@@ -66,7 +66,7 @@ class MultiChoice(BaseModel):
 
 
 class MultiChoiceService():
-    def __init__(self, llm: LLMBackend, prompt: Prompt, model: str):
+    def __init__(self, llm: LLMBackend, prompt: Prompt):
         self.llm = llm
         self.prompt = prompt
         
@@ -79,12 +79,20 @@ class MultiChoiceService():
         if self.llm.model_vendor == ModelVendor.OPENAI:
             from .vendor import OpenAIProxy
             llm = OpenAIProxy().chat_model(url=self.llm.url, key=self.llm.secret, model=model)
+        elif self.llm.model_vendor == ModelVendor.ANTHROPIC:
+            from .vendor import AnthropicProxy
+            llm = AnthropicProxy().chat_model(url=self.llm.url, key=self.llm.secret, model=model)
         if not llm:
             raise TypeError("unsupported llm vendor")
         
         parser = JsonOutputParser(pydantic_object=MultiChoice)
         langchain.debug = True
-        chain = prompt | llm | parser
-        chain.invoke({'content': content})
+        try:
+            chain = prompt | llm | parser
+            ret = chain.invoke({'content': content})
+        except Exception as e:
+            print(e)
+            raise e
+        return ret
 
     
