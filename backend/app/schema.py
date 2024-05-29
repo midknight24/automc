@@ -42,3 +42,13 @@ class GenRequest(BaseModel):
     prompt_id: int
     content: str
     model: Optional[str] = ""
+
+
+class Prompt(BaseModel):
+    version: str
+    intro: str
+    intro2: str
+    mainPrompt: str
+    encore: str
+    pick: str
+    improve: str

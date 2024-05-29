@@ -4,7 +4,9 @@ from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.output_parsers import JsonOutputParser
 from langchain_openai import ChatOpenAI
 from .model import LLMBackend, Prompt, ModelVendor
+from .schema import Prompt as PromptSchema
 import langchain
+import yaml
 
 class CRUDBase():
     session: Session
@@ -95,4 +97,7 @@ class MultiChoiceService():
             raise e
         return ret
 
-    
+    def load_prompt(self, path="prompt.yaml"):
+        with open(path, encoding="utf-8") as file:
+            out = yaml.safe_load(file)
+        return PromptSchema(**out)
