@@ -5,10 +5,10 @@ intro: |
   和答案是否与事实相符合,使用json结构进行输出包含validity和explaination,
   validity从0到100,explaination为文字解释,
   对这个问答题与答案的评价和解读,如:
-  {
+  {{
   "validity": 80,
   "explaination"：“这个问答题考察学生计算机编译原理相关的知识,出的大体正确,没有事实错误”
-  }
+  }}
   ```
   {content}
   ```

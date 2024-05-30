@@ -1,12 +1,24 @@
 from sqlmodel import Session, select, SQLModel
 from langchain_core.pydantic_v1 import BaseModel, Field
-from langchain_core.prompts import ChatPromptTemplate
+from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
 from langchain_core.output_parsers import JsonOutputParser
 from langchain_openai import ChatOpenAI
-from .model import LLMBackend, Prompt, ModelVendor
-from .schema import Prompt as PromptSchema
+from langchain_community.chat_message_histories import ChatMessageHistory
+from langchain_core.runnables.history import RunnableWithMessageHistory
 import langchain
 import yaml
+
+from .model import LLMBackend, Prompt, ModelVendor
+from .schema import Prompt as PromptSchema, Evaluation
+
+langchain.debug = True
+
+store = {}
+
+def _get_session_history(session_id: str):
+    if session_id not in store:
+        store[session_id] = ChatMessageHistory()
+    return store[session_id]
 
 class CRUDBase():
     session: Session
@@ -72,11 +84,7 @@ class MultiChoiceService():
         self.llm = llm
         self.prompt = prompt
         
-
-    def invoke(self, content: str, model: str):
-        if "{content}" not in self.prompt.template:
-            raise TypeError("'{content}' must be in prompt template")
-        prompt = ChatPromptTemplate.from_template(template=self.prompt.template)
+    def load_llm(self, model):
         llm = None
         if self.llm.model_vendor == ModelVendor.OPENAI:
             from .vendor import OpenAIProxy
@@ -86,18 +94,58 @@ class MultiChoiceService():
             llm = AnthropicProxy().chat_model(url=self.llm.url, key=self.llm.secret, model=model)
         if not llm:
             raise TypeError("unsupported llm vendor")
+        return llm
+
+    def invoke(self, content: str, model: str):
+
+        # if "{content}" not in self.prompt.template:
+        #     raise TypeError("'{content}' must be in prompt template")
+
+        # prompt = ChatPromptTemplate.from_template(template=self.prompt.template)
+
+        prompt = ChatPromptTemplate.from_messages(
+            [
+                MessagesPlaceholder(variable_name="history"),
+                ("human", "{input}"),
+            ]
+        )
+        llm = self.load_llm(model)
+        runnable = prompt | llm
         
+        with_message_history = RunnableWithMessageHistory(
+            runnable,
+            _get_session_history,
+            input_messages_key="input",
+            history_messages_key="history"
+        )
+        parser = JsonOutputParser(pydantic_object=Evaluation)
+        test = with_message_history | parser
+
+        playwright = self.load_prompt()
+        intro = ChatPromptTemplate.from_template(template=playwright.intro)
+
+        ret = test.invoke(
+            {"input": intro.invoke({"content": content})},
+            config={"configurable": {"session_id": "tmp"}}
+        )
+        
+        evalution = ret
+        print(type(evalution))
+        print(evalution)
+
+
+
         parser = JsonOutputParser(pydantic_object=MultiChoice)
-        langchain.debug = True
-        try:
-            chain = prompt | llm | parser
-            ret = chain.invoke({'content': content})
-        except Exception as e:
-            print(e)
-            raise e
+
+
+        # ret = chain.invoke({'content': content})
         return ret
 
     def load_prompt(self, path="prompt.yaml"):
-        with open(path, encoding="utf-8") as file:
+        import os
+        current_dir = os.path.dirname(__file__)
+        prompt_path = os.path.join(current_dir, path)
+        with open(prompt_path, encoding="utf-8") as file:
             out = yaml.safe_load(file)
         return PromptSchema(**out)
+    

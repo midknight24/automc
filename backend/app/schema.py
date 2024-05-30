@@ -52,3 +52,7 @@ class Prompt(BaseModel):
     encore: str
     pick: str
     improve: str
+
+class Evaluation(BaseModel):
+    validity: int
+    explaination: str
