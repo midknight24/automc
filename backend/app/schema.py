@@ -56,3 +56,7 @@ class Prompt(BaseModel):
 class Evaluation(BaseModel):
     validity: int
     explaination: str
+
+class EvaluationFailed(BaseModel):
+    message: str
+    explaination: str

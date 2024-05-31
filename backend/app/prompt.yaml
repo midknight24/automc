@@ -4,6 +4,7 @@ intro: |
   问答题所属的领域是<计算机科学>,你作为<计算机科学>领域的教育专家,请你判读一下这个问答题
   和答案是否与事实相符合,使用json结构进行输出包含validity和explaination,
   validity从0到100,explaination为文字解释,
+  注意，假如内容不是一道问答题，需要给出validity=0
   对这个问答题与答案的评价和解读,如:
   {{
   "validity": 80,
@@ -64,3 +65,5 @@ improve: |
   修正潜在的语病
   错误选项更加具有迷惑性
   正确选项长度不能太突出
+  优化后, 重新以原本的json结构回答, 不要输出其他格式：
+  使用json格式进行输出, json的key包含question, choices, answer, 其中answer包含正确选项choice,以及解释why

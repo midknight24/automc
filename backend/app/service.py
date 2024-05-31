@@ -9,16 +9,21 @@ import langchain
 import yaml
 
 from .model import LLMBackend, Prompt, ModelVendor
-from .schema import Prompt as PromptSchema, Evaluation
+from .schema import Prompt as PromptSchema, Evaluation, EvaluationFailed
+from .config import VALID_QUIZ_SCORE
 
 langchain.debug = True
 
-store = {}
+def load_prompt(path="prompt.yaml"):
+    import os
+    current_dir = os.path.dirname(__file__)
+    prompt_path = os.path.join(current_dir, path)
+    with open(prompt_path, encoding="utf-8") as file:
+        out = yaml.safe_load(file)
+    return PromptSchema(**out)
 
-def _get_session_history(session_id: str):
-    if session_id not in store:
-        store[session_id] = ChatMessageHistory()
-    return store[session_id]
+
+playwright = load_prompt()
 
 class CRUDBase():
     session: Session
@@ -80,6 +85,18 @@ class MultiChoice(BaseModel):
 
 
 class MultiChoiceService():
+
+    store = {}
+
+    def _get_session_history(self, session_id: str):
+        print("called", session_id)
+        
+        if session_id not in self.store:
+            self.store[session_id] = ChatMessageHistory()
+        print(self.store[session_id])
+        return self.store[session_id]
+
+
     def __init__(self, llm: LLMBackend, prompt: Prompt):
         self.llm = llm
         self.prompt = prompt
@@ -98,11 +115,6 @@ class MultiChoiceService():
 
     def invoke(self, content: str, model: str):
 
-        # if "{content}" not in self.prompt.template:
-        #     raise TypeError("'{content}' must be in prompt template")
-
-        # prompt = ChatPromptTemplate.from_template(template=self.prompt.template)
-
         prompt = ChatPromptTemplate.from_messages(
             [
                 MessagesPlaceholder(variable_name="history"),
@@ -112,40 +124,70 @@ class MultiChoiceService():
         llm = self.load_llm(model)
         runnable = prompt | llm
         
+        # create history based chain
         with_message_history = RunnableWithMessageHistory(
             runnable,
-            _get_session_history,
+            self._get_session_history,
             input_messages_key="input",
             history_messages_key="history"
         )
-        parser = JsonOutputParser(pydantic_object=Evaluation)
-        test = with_message_history | parser
 
-        playwright = self.load_prompt()
+        # enter question input evaluation
+        parser = JsonOutputParser(pydantic_object=Evaluation)
+        chain = with_message_history | parser
         intro = ChatPromptTemplate.from_template(template=playwright.intro)
 
-        ret = test.invoke(
-            {"input": intro.invoke({"content": content})},
+        rendered = intro.invoke({"content": content}).to_messages()
+        out = chain.invoke(
+            {"input": rendered},
             config={"configurable": {"session_id": "tmp"}}
         )
-        
-        evalution = ret
-        print(type(evalution))
-        print(evalution)
+        evalution = Evaluation(**out)
+
+        if evalution.validity < VALID_QUIZ_SCORE:
+            print(evalution)
+            return EvaluationFailed(
+                message="哦！看起来您的输入不太适合转变成选择题。。",
+                explaination=evalution.explaination
+            )
 
 
+        # ask for more background on input topic
+        with_message_history.invoke(
+            {"input": playwright.intro2},
+            config={"configurable": {"session_id": "tmp"}}
+        )
 
+        # enter main prompt 
+        with_message_history.invoke(
+            {"input": playwright.mainPrompt},
+            config={"configurable": {"session_id": "tmp"}}   
+        )
+
+        # ask for two more generation
+        for _ in range(2):
+            with_message_history.invoke(
+                {"input": playwright.encore},
+                config={"configurable": {"session_id": "tmp"}}
+            )
+
+        # ask to pick best output
+        with_message_history.invoke(
+            {"input": playwright.pick},
+            config={"configurable": {"session_id": "tmp"}}
+        )
+
+        # ask to improve final output
         parser = JsonOutputParser(pydantic_object=MultiChoice)
+        final = with_message_history | parser
+        ret = final.invoke(
+            {"input": playwright.improve},
+            config={"configurable": {"session_id": "tmp"}}
+        )
 
+        # cleanup history
+        del self.store["tmp"]
 
-        # ret = chain.invoke({'content': content})
         return ret
 
-    def load_prompt(self, path="prompt.yaml"):
-        import os
-        current_dir = os.path.dirname(__file__)
-        prompt_path = os.path.join(current_dir, path)
-        with open(prompt_path, encoding="utf-8") as file:
-            out = yaml.safe_load(file)
-        return PromptSchema(**out)
     
