@@ -50,8 +50,7 @@ class Prompt(BaseModel):
     intro2: str
     mainPrompt: str
     encore: str
-    pick: str
-    improve: str
+    pick_and_improve: str
 
 class Evaluation(BaseModel):
     validity: int

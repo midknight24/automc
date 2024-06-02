@@ -26,7 +26,7 @@ class OpenAIProxy(ModelProxy):
         else:
             model = kwargs["model"]
 
-        llm = ChatOpenAI(openai_api_base=kwargs["url"], openai_api_key=kwargs["key"], model=model)
+        llm = ChatOpenAI(temperature=0.8, openai_api_base=kwargs["url"], openai_api_key=kwargs["key"], model=model)
         return llm
         
 

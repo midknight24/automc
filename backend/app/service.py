@@ -89,11 +89,8 @@ class MultiChoiceService():
     store = {}
 
     def _get_session_history(self, session_id: str):
-        print("called", session_id)
-        
         if session_id not in self.store:
             self.store[session_id] = ChatMessageHistory()
-        print(self.store[session_id])
         return self.store[session_id]
 
 
@@ -112,6 +109,10 @@ class MultiChoiceService():
         if not llm:
             raise TypeError("unsupported llm vendor")
         return llm
+    
+    def log_history(self, path, key):
+        with open(path, "w", encoding="utf-8") as file:
+            file.write(str(self.store[key]))
 
     def invoke(self, content: str, model: str):
 
@@ -171,19 +172,15 @@ class MultiChoiceService():
                 config={"configurable": {"session_id": "tmp"}}
             )
 
-        # ask to pick best output
-        with_message_history.invoke(
-            {"input": playwright.pick},
-            config={"configurable": {"session_id": "tmp"}}
-        )
-
-        # ask to improve final output
+        # ask to choose and improve final output
         parser = JsonOutputParser(pydantic_object=MultiChoice)
         final = with_message_history | parser
         ret = final.invoke(
-            {"input": playwright.improve},
+            {"input": playwright.pick_and_improve},
             config={"configurable": {"session_id": "tmp"}}
         )
+
+        self.log_history("history.txt", "tmp")
 
         # cleanup history
         del self.store["tmp"]
