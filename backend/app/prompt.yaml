@@ -4,7 +4,7 @@ intro: |
   是否有不准确或者错误的地方，同时对文段的主旨进行分类，输出类型后面的英文描述：
   1. 定义并介绍某些技术、用途或使用方法（definition and introduction）
   2. 描述某技术的运行过程或原理（operating procedure and principle）
-  3. 描述非算法或数据结构直接相关的技术的细节（techincal detail）
+  3. 描述非算法或数据结构直接相关的技术的细节（technical detail）
   4. 介绍某种算法或数据结构（algorithm and datastructure）
   5. 对比多种技术的优缺点与不同之处（technical comparison）
   6. 其他（others）
@@ -72,3 +72,20 @@ pick_and_improve: |
   正确选项长度不能太突出
   优化后, 重新以原本的json结构回答, 不要输出其他格式：
   使用json格式进行输出, json的key包含question, choices, answer, 其中answer包含正确选项choice,以及解释why
+
+type_specs:
+  - name: definition
+    patch_prompt: |
+      对于技术概念与定义相关的文段，尝试考察学生对概念与定义的理解是否准确，注意错误选项需要具有模糊性，含有对该定义与概念的普遍错误认识
+  - name: procedure
+    patch_prompt: |
+      对于讲解技术的运行过程或原理的文段，尝试考察学生对过程和原理的理解是否充分与正确，比如说考察技术运行中各步骤的顺序，或者
+      该技术会如何处理特殊场景等
+  - name: detail
+    patch_prompt: pass
+  - name: algo
+    patch_prompt: pass
+  - name: comparison
+    patch_prompt: pass
+  - name: others
+    patch_prompt: pass
