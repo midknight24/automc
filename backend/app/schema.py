@@ -1,5 +1,6 @@
 from pydantic import BaseModel
-from typing import Optional
+from typing import Optional, List
+from enum import Enum
 from datetime import datetime
 from .model import ModelVendor
 
@@ -43,6 +44,13 @@ class GenRequest(BaseModel):
     content: str
     model: Optional[str] = ""
 
+class PatchPrompt(BaseModel):
+    name: str
+    patch_prompt: str
+
+class TypeSpecs(BaseModel):
+    specs: List[PatchPrompt]
+
 
 class Prompt(BaseModel):
     version: str
@@ -51,10 +59,22 @@ class Prompt(BaseModel):
     mainPrompt: str
     encore: str
     pick_and_improve: str
+    type_spces: TypeSpecs
+
+
+class TextType(str, Enum):
+    definition = "definition and introduction"
+    procedure = "mechanism and procedure"
+    detail = "technical detail"
+    algorithm = "algorithm and datastructure"
+    comparison = "technical comparison"
+    others = "others"
+
 
 class Evaluation(BaseModel):
     validity: int
     explaination: str
+    text_type: TextType
 
 class EvaluationFailed(BaseModel):
     message: str

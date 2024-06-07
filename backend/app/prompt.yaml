@@ -1,22 +1,22 @@
 version: v0.0.1
 intro: |
-  以下用```括起来的是一道从html中抓取的知识片段，所属的领域是<计算机科学>,你作为<计算机科学>领域的教育专家,请你判读一下这段文本与事实是否相符,
-  是否有不准确或者错误的地方，同时对文段的主旨进行分类，输出类型后面的英文描述：
-  1. 定义并介绍某些技术、用途或使用方法（definition and introduction）
-  2. 描述某技术的运行过程或原理（operating procedure and principle）
-  3. 描述非算法或数据结构直接相关的技术的细节（technical detail）
-  4. 介绍某种算法或数据结构（algorithm and datastructure）
-  5. 对比多种技术的优缺点与不同之处（technical comparison）
-  6. 其他（others）
+  以下用```括起来的是一道从html中抓取的知识片段,所属的领域是<计算机科学>,你作为<计算机科学>领域的教育专家,请你判读一下这段文本与事实是否相符,
+  是否有不准确或者错误的地方,同时对文段的主旨进行分类,输出类型后面的英文描述：
+  1. 定义并介绍某些技术、用途或使用方法(definition and introduction)
+  2. 描述某技术的运行过程或原理(mechanism and procedure)
+  3. 描述非算法或数据结构直接相关的技术的细节(technical detail)
+  4. 介绍某种算法或数据结构(algorithm and datastructure)
+  5. 对比多种技术的优缺点与不同之处(technical comparison)
+  6. 其他(others)
 
-  使用json结构进行输出包含validity、explaination和type, 
+  使用json结构进行输出包含validity、explaination和text_type, 
     validity从0到100,explaination为文字解释,
-    注意，假如内容不是一道问答题，需要给出validity=0
+    注意,假如内容不是一道问答题,需要给出validity=0
     对这个问答题与答案的评价和解读,如:
     {{
     "validity": 80,
-    "explaination"：“这篇文章介绍交换机如何根据mac地址发送以太网帧到不同电脑，大体正确,没有事实错误”
-    "type"：“definition and introduction”
+    "explaination"：“这篇文章介绍交换机如何根据mac地址发送以太网帧到不同电脑,大体正确,没有事实错误”
+    "text_type"：“definition and introduction”
     }}
   ```
 
@@ -65,7 +65,7 @@ encore: |
   结合你对原问答题的评价,和上面对它考察的知识重点与普遍错误认识的介绍,从另一个角度,再出一道包含5个选项的选择题,同样以json结构回复
 
 pick_and_improve: |
-  在这三道选择题中,把你认为质量最高,最能考察相关知识的重点的题作为这次回答的输出，首先
+  在这三道选择题中,把你认为质量最高,最能考察相关知识的重点的题作为这次回答的输出,首先
   对所有选项,作出描述优化：
   修正潜在的语病
   错误选项更加具有迷惑性
@@ -76,16 +76,19 @@ pick_and_improve: |
 type_specs:
   - name: definition
     patch_prompt: |
-      对于技术概念与定义相关的文段，尝试考察学生对概念与定义的理解是否准确，注意错误选项需要具有模糊性，含有对该定义与概念的普遍错误认识
+      对于技术概念与定义相关的文段,尝试考察学生对概念与定义的理解是否准确,注意错误选项需要具有模糊性,含有对该定义与概念的普遍错误认识
   - name: procedure
     patch_prompt: |
-      对于讲解技术的运行过程或原理的文段，尝试考察学生对过程和原理的理解是否充分与正确，比如说考察技术运行中各步骤的顺序，或者
+      对于讲解技术的运行过程或原理的文段,尝试考察学生对过程和原理的理解是否充分与正确,比如说考察技术运行中各步骤的顺序,或者
       该技术会如何处理特殊场景等
   - name: detail
-    patch_prompt: pass
-  - name: algo
-    patch_prompt: pass
+    patch_prompt: |
+      对于描述非算法类技术的细节，尝试考察学生对细节的掌握
+  - name: algorithm
+    patch_prompt: |
+      对于算法和数据结构类的文段，尝试考察学生对算法的中心思想、数据结构的适用场景等
   - name: comparison
-    patch_prompt: pass
+    patch_prompt: |
+      对于技术类比较的文段，尝试考察学生对个技术的优缺点之区别，以及各自的适用场景
   - name: others
-    patch_prompt: pass
+    patch_prompt: ''
