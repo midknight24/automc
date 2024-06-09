@@ -9,7 +9,7 @@ import langchain
 import yaml
 
 from .model import LLMBackend, Prompt, ModelVendor
-from .schema import Prompt as PromptSchema, Evaluation, EvaluationFailed
+from .schema import Prompt as PromptSchema, Evaluation, EvaluationFailed, TextTypeMap
 from .config import VALID_QUIZ_SCORE
 
 langchain.debug = True
@@ -165,12 +165,16 @@ class MultiChoiceService():
             config={"configurable": {"session_id": "tmp"}}   
         )
 
-        # ask for two more generation
-        for _ in range(2):
-            with_message_history.invoke(
-                {"input": playwright.encore},
-                config={"configurable": {"session_id": "tmp"}}
-            )
+        
+
+        # ask for type specific generation
+        with_message_history.invoke(
+            {
+                "input": playwright.encore + '\n' + 
+                getattr(playwright.type_specs, TextTypeMap[evalution.text_type]).patch_prompt
+            },
+            config={"configurable": {"session_id": "tmp"}}
+        )
 
         # ask to choose and improve final output
         parser = JsonOutputParser(pydantic_object=MultiChoice)

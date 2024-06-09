@@ -45,11 +45,16 @@ class GenRequest(BaseModel):
     model: Optional[str] = ""
 
 class PatchPrompt(BaseModel):
-    name: str
     patch_prompt: str
 
+
 class TypeSpecs(BaseModel):
-    specs: List[PatchPrompt]
+    definition: PatchPrompt
+    procedure: PatchPrompt
+    detail: PatchPrompt
+    algorithm: PatchPrompt
+    comparison: PatchPrompt
+    others: PatchPrompt
 
 
 class Prompt(BaseModel):
@@ -59,7 +64,9 @@ class Prompt(BaseModel):
     mainPrompt: str
     encore: str
     pick_and_improve: str
-    type_spces: TypeSpecs
+    type_specs: TypeSpecs
+
+
 
 
 class TextType(str, Enum):
@@ -69,6 +76,9 @@ class TextType(str, Enum):
     algorithm = "algorithm and datastructure"
     comparison = "technical comparison"
     others = "others"
+
+
+TextTypeMap = {v: k for k, v in TextType.__members__.items()}
 
 
 class Evaluation(BaseModel):

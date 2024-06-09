@@ -19,6 +19,8 @@ intro: |
     "text_type"：“definition and introduction”
     }}
   ```
+  {content}
+  ```
 
 intro2: |
   介绍一下这个问题想要考察的知识重点,它有什么普遍的错误认识
@@ -74,21 +76,21 @@ pick_and_improve: |
   使用json格式进行输出, json的key包含question, choices, answer, 其中answer包含正确选项choice,以及解释why
 
 type_specs:
-  - name: definition
+  definition:
     patch_prompt: |
       对于技术概念与定义相关的文段,尝试考察学生对概念与定义的理解是否准确,注意错误选项需要具有模糊性,含有对该定义与概念的普遍错误认识
-  - name: procedure
+  procedure:
     patch_prompt: |
       对于讲解技术的运行过程或原理的文段,尝试考察学生对过程和原理的理解是否充分与正确,比如说考察技术运行中各步骤的顺序,或者
       该技术会如何处理特殊场景等
-  - name: detail
+  detail:
     patch_prompt: |
       对于描述非算法类技术的细节，尝试考察学生对细节的掌握
-  - name: algorithm
+  algorithm:
     patch_prompt: |
       对于算法和数据结构类的文段，尝试考察学生对算法的中心思想、数据结构的适用场景等
-  - name: comparison
+  comparison:
     patch_prompt: |
       对于技术类比较的文段，尝试考察学生对个技术的优缺点之区别，以及各自的适用场景
-  - name: others
+  others:
     patch_prompt: ''
