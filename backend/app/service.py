@@ -9,7 +9,7 @@ import langchain
 import yaml
 
 from .model import LLMBackend, Prompt, ModelVendor
-from .schema import Prompt as PromptSchema, Evaluation, EvaluationFailed, TextTypeMap
+from .schema import PlayWright as PromptSchema, Evaluation, EvaluationFailed, TextTypeMap
 from .config import VALID_QUIZ_SCORE
 
 langchain.debug = True
@@ -114,7 +114,7 @@ class MultiChoiceService():
         with open(path, "w", encoding="utf-8") as file:
             file.write(str(self.store[key]))
 
-    def invoke(self, content: str, model: str):
+    def invoke(self, content: str, model: str | None):
 
         prompt = ChatPromptTemplate.from_messages(
             [
@@ -159,12 +159,13 @@ class MultiChoiceService():
             config={"configurable": {"session_id": "tmp"}}
         )
 
-        # enter main prompt 
-        with_message_history.invoke(
+        # enter main prompt
+        parser = JsonOutputParser(pydantic_object=MultiChoice)
+        tmp_chain = with_message_history | parser
+        ret1 = tmp_chain.invoke(
             {"input": playwright.mainPrompt},
             config={"configurable": {"session_id": "tmp"}}   
         )
-
         
 
         # ask for type specific generation
@@ -177,9 +178,8 @@ class MultiChoiceService():
         )
 
         # ask to choose and improve final output
-        parser = JsonOutputParser(pydantic_object=MultiChoice)
         final = with_message_history | parser
-        ret = final.invoke(
+        ret2 = final.invoke(
             {"input": playwright.pick_and_improve},
             config={"configurable": {"session_id": "tmp"}}
         )
@@ -189,6 +189,6 @@ class MultiChoiceService():
         # cleanup history
         del self.store["tmp"]
 
-        return ret
+        return [ret1, ret2]
 
     

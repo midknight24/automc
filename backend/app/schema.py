@@ -23,9 +23,6 @@ class LLMBackend(MetaBase):
     secret: str
     model_vendor: ModelVendor
 
-    class Config:
-        from_attributes = True
-
 class LLMBackendUpsert(BaseModel):
     id: Optional[int] = None
     name: str
@@ -33,10 +30,6 @@ class LLMBackendUpsert(BaseModel):
     url: str
     secret: str
     model_vendor: ModelVendor
-
-
-    class Config:
-        from_attributes = True
 
 class GenRequest(BaseModel):
     llm_id: int
@@ -57,7 +50,7 @@ class TypeSpecs(BaseModel):
     others: PatchPrompt
 
 
-class Prompt(BaseModel):
+class PlayWright(BaseModel):
     version: str
     intro: str
     intro2: str
