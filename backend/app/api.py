@@ -64,4 +64,4 @@ def generate(gen_req: GenRequest, db: Session = Depends(get_db)):
         raise HTTPException(status_code=404, detail="prompt not found")
     
     srv = service.MultiChoiceService(llm, prompt)
-    return srv.invoke(gen_req.content, gen_req.model)
+    return srv.invoke(gen_req.content, gen_req.model, pick_best=gen_req.pick_best)

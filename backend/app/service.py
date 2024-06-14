@@ -114,7 +114,7 @@ class MultiChoiceService():
         with open(path, "w", encoding="utf-8") as file:
             file.write(str(self.store[key]))
 
-    def invoke(self, content: str, model: str | None):
+    def invoke(self, content: str, model: str | None, pick_best=True):
 
         prompt = ChatPromptTemplate.from_messages(
             [
@@ -169,7 +169,7 @@ class MultiChoiceService():
         
 
         # ask for type specific generation
-        with_message_history.invoke(
+        ret2 = tmp_chain.invoke(
             {
                 "input": playwright.encore + '\n' + 
                 getattr(playwright.type_specs, TextTypeMap[evalution.text_type]).patch_prompt
@@ -177,18 +177,22 @@ class MultiChoiceService():
             config={"configurable": {"session_id": "tmp"}}
         )
 
-        # ask to choose and improve final output
-        final = with_message_history | parser
-        ret2 = final.invoke(
-            {"input": playwright.pick_and_improve},
-            config={"configurable": {"session_id": "tmp"}}
-        )
+        ans = [ret1, ret2]
+
+        if pick_best:
+            # ask to choose and improve final output
+            final = with_message_history | parser
+            ret_best = final.invoke(
+                {"input": playwright.pick_and_improve},
+                config={"configurable": {"session_id": "tmp"}}
+            )
+            ans = [ret_best]
 
         self.log_history("history.txt", "tmp")
 
         # cleanup history
         del self.store["tmp"]
 
-        return [ret1, ret2]
+        return ans
 
     

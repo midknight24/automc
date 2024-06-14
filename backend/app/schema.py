@@ -36,6 +36,7 @@ class GenRequest(BaseModel):
     prompt_id: int
     content: str
     model: Optional[str] = ""
+    pick_best: bool = True
 
 class PatchPrompt(BaseModel):
     patch_prompt: str
