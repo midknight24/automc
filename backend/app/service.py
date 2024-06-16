@@ -7,7 +7,7 @@ from langchain_community.chat_message_histories import ChatMessageHistory
 from langchain_core.runnables.history import RunnableWithMessageHistory
 import langchain
 import yaml
-
+import os
 from .model import LLMBackend, Prompt, ModelVendor
 from .schema import PlayWright as PromptSchema, Evaluation, EvaluationFailed, TextTypeMap
 from .config import VALID_QUIZ_SCORE
@@ -23,7 +23,22 @@ def load_prompt(path="prompt.yaml"):
     return PromptSchema(**out)
 
 
-playwright = load_prompt()
+    
+def load_playwright(path):
+    current_dir = os.path.dirname(__file__)
+    prompt_path = os.path.join(current_dir, path)
+    with open(prompt_path, encoding="utf-8") as file:
+        out = yaml.safe_load(file)
+    return PromptSchema(**out)
+
+def load_oneshot(path):
+    current_dir = os.path.dirname(__file__)
+    prompt_path = os.path.join(current_dir, path)
+    with open(prompt_path, encoding="utf-8") as file:
+        return file.read()
+
+playwright = load_playwright(path="prompt.yaml")
+oneshot_promot = load_oneshot(path="prompt-oneshot.yaml")
 
 class CRUDBase():
     session: Session
@@ -94,9 +109,8 @@ class MultiChoiceService():
         return self.store[session_id]
 
 
-    def __init__(self, llm: LLMBackend, prompt: Prompt):
+    def __init__(self, llm: LLMBackend):
         self.llm = llm
-        self.prompt = prompt
         
     def load_llm(self, model):
         llm = None
@@ -115,7 +129,16 @@ class MultiChoiceService():
             file.write(str(self.store[key]))
 
     def invoke_oneshot(self, content: str, model: str | None):
-        pass
+        prompt = ChatPromptTemplate.from_template(template=oneshot_promot)
+        llm = self.load_llm(model)
+        parser = JsonOutputParser(pydantic_object=MultiChoice)
+        try:
+            chain = prompt | llm | parser
+            ret = chain.invoke({'content': content})
+        except Exception as e:
+            print(e)
+            raise e
+        return ret
 
 
     def invoke(self, content: str, model: str | None, pick_best=True, oneshot=False):
@@ -191,6 +214,11 @@ class MultiChoiceService():
                 config={"configurable": {"session_id": "tmp"}}
             )
             ans = [ret_best]
+
+
+        # TODO: use async or multithreading
+        if oneshot:
+            ans.append(self.invoke_oneshot(content, model))
 
         self.log_history("history.txt", "tmp")
 

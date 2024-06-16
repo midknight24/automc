@@ -33,10 +33,10 @@ class LLMBackendUpsert(BaseModel):
 
 class GenRequest(BaseModel):
     llm_id: int
-    prompt_id: int
     content: str
     model: Optional[str] = ""
     pick_best: bool = True
+    oneshot: bool = False
 
 class PatchPrompt(BaseModel):
     patch_prompt: str

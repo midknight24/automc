@@ -53,15 +53,14 @@ automcRouter = APIRouter(
 )
 
 @automcRouter.post("/generate")
-def generate(gen_req: GenRequest, db: Session = Depends(get_db)):
+def generate(req: GenRequest, db: Session = Depends(get_db)):
     llm_srv = service.LLMBackendService(db)
     prompt_srv = service.PromptService(db)
-    llm = llm_srv.get(gen_req.llm_id)
+    llm = llm_srv.get(req.llm_id)
     if not llm:
         raise HTTPException(status_code=404, detail="llm not found")
-    prompt = prompt_srv.get(gen_req.prompt_id)
-    if not prompt:
-        raise HTTPException(status_code=404, detail="prompt not found")
     
-    srv = service.MultiChoiceService(llm, prompt)
-    return srv.invoke(gen_req.content, gen_req.model, pick_best=gen_req.pick_best)
+    srv = service.MultiChoiceService(llm)
+    return srv.invoke(req.content, req.model,
+                      pick_best=req.pick_best,
+                      oneshot=req.oneshot)
