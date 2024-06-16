@@ -114,7 +114,11 @@ class MultiChoiceService():
         with open(path, "w", encoding="utf-8") as file:
             file.write(str(self.store[key]))
 
-    def invoke(self, content: str, model: str | None, pick_best=True):
+    def invoke_oneshot(self, content: str, model: str | None):
+        pass
+
+
+    def invoke(self, content: str, model: str | None, pick_best=True, oneshot=False):
 
         prompt = ChatPromptTemplate.from_messages(
             [
