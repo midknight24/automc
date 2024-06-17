@@ -31,21 +31,21 @@ promptRouter = APIRouter(
     tags=["prompts"]
 )
 
-@promptRouter.get("/")
-def get_prompt(db: Session = Depends(get_db)):
-    srv = service.PromptService(db)
-    return srv.list()
+# @promptRouter.get("/")
+# def get_prompt(db: Session = Depends(get_db)):
+#     srv = service.PromptService(db)
+#     return srv.list()
 
 
-@promptRouter.post("/")
-def upsert_prompt(prompt: PromptUpsert, db: Session = Depends(get_db)):
-    srv = service.PromptService(db)
-    srv.upsert(prompt.model_dump())
+# @promptRouter.post("/")
+# def upsert_prompt(prompt: PromptUpsert, db: Session = Depends(get_db)):
+#     srv = service.PromptService(db)
+#     srv.upsert(prompt.model_dump())
 
-@promptRouter.delete("/")
-def delete_prompt(id: int, db: Session = Depends(get_db)):
-    srv = service.PromptService(db)
-    srv.delete(id)
+# @promptRouter.delete("/")
+# def delete_prompt(id: int, db: Session = Depends(get_db)):
+#     srv = service.PromptService(db)
+#     srv.delete(id)
 
 automcRouter = APIRouter(
     prefix="/multichoices",

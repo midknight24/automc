@@ -152,6 +152,8 @@ class MultiChoiceService():
         llm = self.load_llm(model)
         runnable = prompt | llm
         
+        results = {}
+
         # create history based chain
         with_message_history = RunnableWithMessageHistory(
             runnable,
@@ -193,6 +195,8 @@ class MultiChoiceService():
             {"input": playwright.mainPrompt},
             config={"configurable": {"session_id": "tmp"}}   
         )
+
+        results["full"] = ret1
         
 
         # ask for type specific generation
@@ -204,7 +208,8 @@ class MultiChoiceService():
             config={"configurable": {"session_id": "tmp"}}
         )
 
-        ans = [ret1, ret2]
+        results["encore"] = ret2
+
 
         if pick_best:
             # ask to choose and improve final output
@@ -213,18 +218,18 @@ class MultiChoiceService():
                 {"input": playwright.pick_and_improve},
                 config={"configurable": {"session_id": "tmp"}}
             )
-            ans = [ret_best]
+            results["best"] = ret_best
 
 
         # TODO: use async or multithreading
         if oneshot:
-            ans.append(self.invoke_oneshot(content, model))
+            results["oneshot"] = self.invoke_oneshot(content, model)
 
         self.log_history("history.txt", "tmp")
 
         # cleanup history
         del self.store["tmp"]
 
-        return ans
+        return results
 
     
