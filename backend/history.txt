@@ -17,67 +17,69 @@ Human: 以下用```括起来的是一道从html中抓取的知识片段,所属�
   "text_type"：“definition and introduction”
   }
 ```
-# Bearer认证与JWT
+一个http请求是如何到达flask的？
+## 答案
 
-### Bearer
+假设服务器用的是gunicorn，在linux上运行，大致可以用此图总结
 
-Bearer认证是一种HTTP身份验证方式，其核心是bearer token，一个加密字符串，通常由服务端生成，客户端在请求资源时必须在请求头包含:
+![Untitled](https://s3-us-west-2.amazonaws.com/secure.notion-static.com/31af22ed-9ea0-4ff4-8ddc-1d5939b9d6c2/Untitled.png)
 
-```jsx
-Authorization: Bearer ${Token}
+**网络层结尾**
+
+1. 内核获取数据包后，根据解包获得目标ip和目标端口，找到对应的**TCP套接字**，并写入缓冲区
+2. 通过系统调用（select、epoll_wait等**I/O多路复用方式**）唤醒gunicorn进程，通知其读取信息
+
+**应用层**
+
+1. gunicorn读取出来请求后、初始化其绑定的Python **WSGI** app，大概如下：
+    
+    ```python
+    from flask import app
+    application_iter = app(environ, start_response)
+    ```
+    
+2. WSGI是一个标准，它规定了接受http请求的python程序必须：
+    1. 是一个可调用对象（callable）
+    2. 接受两个参数：environ（WSGI 环境信息）和 start_response（响应请求要调用的函数），**http服务器**负责提供并实现这两个参数，start_response也是一个可调用对象，由**应用程序**返回前调用
+    3. 值得注意的是，WSGI应用是可以嵌套的，所以前面会经过路由middleware解析url路径，找到正确的flask接口函数
+3. flask就实现了WSGI接口，于是大致流程便是：
+    1. gunicorn准备environ字典和start_response回调函数
+    2. 通过上述两个参数初始化flask的app
+    3. app初始化后根据参数、路由找到最终的接口函数，用http请求体的信息调用他
+    4. 获得返回结果，处理成http返回后回写至**TCP套接字**
+    5. http返回经由linux网络栈传出，至此，一个请求的旅程便完成了
 ```
 
-服务端在解析请求头对token进行校验后，如果通过，则认证通过。
-
-一般情况下，一开始客户端需要提供账号密码来获得首个token，然后浏览器将其存入缓存或localstorage以使接下来的请求自动在请求头加上，并且过期刷新。所以需要配合HTTPS加密使用。
-
-### Json Web Token (JWT)
-
-JWT是Bearer Token的一种实现，是Json数据经过哈希后生成的一个字符串。其优点主要是无需在服务器储存认证凭证。
-
-JWT由Header，Payload和Signature组成，前二为json数据的base64编码，而signature则是用jwt secretkey加密而成的字符串。
-
-认证时，服务器根据Header说明的哈希方式、加密方式与只存储在服务器的secretkey对header和body再进行加密签名，然后对比新得到的signature与本身附带的是否一致，如果一样则说明该JWT token有效，否则无效。
-```
-
-AI: ```json
-{
-  "validity": 95,
-  "explaination": "该文段描述了Bearer认证与JWT的定义与使用方法，并且解释了JWT的组成和验证过程。整体内容准确，没有明显的事实错误。仅在个别细节上可以补充更多信息，例如更详细地描述JWT的优点和可能的安全隐患。",
-  "text_type": "definition and introduction"
+AI: {
+  "validity": 90,
+  "explaination": "这篇文章比较全面地介绍了一个HTTP请求在Flask应用中的处理流程,从网络层到应用层都有涉及。内容没有明显错误,只是在WSGI部分的描述可以更加精确和全面一些。总的来说,对一个HTTP请求的处理过程讲解得比较清晰。",
+  "text_type": "mechanism and procedure"
 }
-```
 Human: 介绍一下这个问题想要考察的知识重点,它有什么普遍的错误认识
 
-AI: 这个问题主要考察了以下几个知识重点：
+AI: 这个问题主要想考察以下几个知识重点:
 
-1. **Bearer 认证**：
-   - Bearer 认证的基本概念及其工作原理。
-   - Bearer token 在 HTTP 请求中的使用方式。
+1. HTTP请求在网络层的处理过程,包括内核如何接收数据包、解包获取目标IP和端口,以及通过TCP套接字传递给应用层进程。这涉及到计算机网络的基础知识。
 
-2. **JWT (Json Web Token)**：
-   - JWT 的基本组成部分（Header、Payload、Signature）。
-   - JWT 的生成和验证过程。
-   - JWT 的优点，如无需在服务器存储认证凭证。
+2. Linux系统中,内核如何通过I/O多路复用机制(如epoll)唤醒应用进程读取socket数据。这考察了操作系统和网络编程的知识。
 
-普遍的错误认识包括：
+3. WSGI(Web Server Gateway Interface)标准的理解和作用。WSGI定义了Web服务器和Python Web应用程序之间的接口规范。很多人可能只知道Flask等框架,但不清楚背后的WSGI机制。
 
-1. **Bearer Token 的安全性**：
-   - 一些人可能认为只要使用 Bearer Token 就足够安全，但实际上，如果不使用 HTTPS，加密的 Bearer Token 仍然可能被中间人攻击捕获和重放。
+4. Python Web框架(如Flask)如何实现WSGI接口,接收请求并调用具体的业务处理函数。这考察了Web开发框架的工作原理。
 
-2. **JWT 的存储位置**：
-   - 将 JWT 存储在浏览器的 LocalStorage 中虽然方便，但可能会带来 XSS（跨站脚本攻击）的风险。更推荐的方式是将 JWT 存储在 HttpOnly 的 Cookie 中。
+5. HTTP请求在整个处理链路中的流转过程,从网络层到Web框架。这需要对计算机网络、操作系统和Web开发都有一定的理解,属于一个综合性的知识点。
 
-3. **JWT 的无状态性**：
-   - JWT 的无状态性被认为是一个主要优点，但这同时也意味着无法轻易地废除或撤销某个已发出的 JWT，除非通过额外的机制（如维护一个黑名单）。
+一些常见的错误认识:
 
-4. **JWT 的有效期管理**：
-   - 没有明确的 JWT 过期策略会带来潜在的安全风险。有些人可能没有设置合理的过期时间，或者没有处理好过期后的刷新逻辑。
+1. 认为HTTP请求直接由Web服务器(如Nginx)处理并转发给Flask应用,忽略了像Gunicorn这样的WSGI服务器的作用。
 
-5. **JWT 的加密和签名**：
-   - 一些人可能混淆了加密和签名的概念。JWT 的 signature 部分是对数据进行签名，而不是加密。签名是为了验证数据的完整性和来源，而不是为了保密。
+2. 忽略了操作系统内核在网络请求处理中的重要角色,如内核负责接收网络包并通过epoll等机制通知应用进程。
 
-通过了解这些错误认识，可以帮助学习者更全面地理解 Bearer 认证和 JWT，从而避免常见的安全陷阱和误用。
+3. 可能知道一些Python Web框架,但不清楚背后的WSGI标准,以及这些框架是如何实现WSGI接口的。
+
+4. 对请求处理的整个链路缺乏全局和清晰的认识,不明白请求是如何在网络层、操作系统、WSGI服务器、Web框架之间流转的。
+
+总之,这个问题考察的是一个全栈知识点,涉及面较广,需要有比较全面和深入的理解。很多人可能只掌握了其中的一部分环节,对整个请求处理流程缺乏清晰和准确的认知。
 Human: 结合你对问答题的评价,和上面对它考察的知识重点与普遍错误认识的介绍,把它转化为一道包含5个选项的选择题,其中只有一个正确答案,记得,要5个选项
 设计的时候,按照以下原则：
 
@@ -115,39 +117,36 @@ Human: 结合你对问答题的评价,和上面对它考察的知识重点与普
 }}
 }}
 
-AI: ```json
-{
-  "question": "关于Bearer认证与JWT，以下哪项描述是正确的？",
-  "choices": {
-    "A": "Bearer Token可以在HTTP请求中使用明文传输。",
-    "B": "JWT需要在服务器存储认证凭证。",
-    "C": "JWT的签名部分用于保密数据。",
-    "D": "JWT的Header和Payload部分是Base64编码的JSON数据。",
-    "E": "Bearer Token和JWT都可以在不使用HTTPS的情况下安全传输。"
-  },
-  "answer": {
-    "choice": "D",
-    "why": "JWT的Header和Payload部分确实是Base64编码的JSON数据。其他选项包含了普遍的错误认识：Bearer Token必须通过HTTPS传输以保证安全，JWT无需在服务器存储认证凭证，JWT的签名部分是用于验证数据的完整性而非保密，Bearer Token和JWT在不使用HTTPS的情况下是不安全的。"
-  }
+AI: {
+"question": "在一个HTTP请求到达Flask应用的过程中,下列哪项描述是错误的?",
+"choices": {
+"A": "内核接收到网络数据包后,通过TCP套接字将数据传递给WSGI服务器进程",
+"B": "WSGI服务器通过environ字典和start_response回调函数初始化Flask应用",
+"C": "Flask应用根据请求信息和路由规则,调用对应的业务处理函数",
+"D": "WSGI服务器直接调用Flask应用的业务处理函数,生成HTTP响应",
+"E": "HTTP响应数据由WSGI服务器写回TCP套接字,经由内核的网络栈传出"
+},
+"answer": {
+"choice": "D",
+"why": "WSGI服务器并不直接调用Flask应用的业务处理函数。它首先会初始化Flask应用,将environ和start_response传递给Flask应用,由Flask应用根据请求信息和路由规则调用对应的业务处理函数。WSGI服务器只是负责接收请求和发送响应,中间的路由和调用是由Flask应用自己处理的。这也体现了WSGI接口的作用,它定义了Web服务器和Web应用之间的交互规范,使得二者可以解耦,各自专注于自己的任务。"
 }
-```
+}
 Human: 结合你对原问答题的评价,和上面对它考察的知识重点与普遍错误认识的介绍,从另一个角度,再出一道包含5个选项的选择题,同样以json结构回复
 
-对于技术概念与定义相关的文段,尝试考察学生对概念与定义的理解是否准确,注意错误选项需要具有模糊性,含有对该定义与概念的普遍错误认识
+对于讲解技术的运行过程或原理的文段,尝试考察学生对过程和原理的理解是否充分与正确,比如说考察技术运行中各步骤的顺序,或者
+该技术会如何处理特殊场景等
 
-AI: ```json
-{
-  "question": "以下哪项最准确地描述了JWT（Json Web Token）的特点？",
-  "choices": {
-    "A": "JWT的Payload部分经过加密以保证数据保密性。",
-    "B": "JWT的优点之一是无需在服务器存储认证凭证。",
-    "C": "JWT只能在HTTP请求的Header中使用。",
-    "D": "JWT的所有部分都是经过加密的。",
-    "E": "JWT的Signature部分是用来存储用户的敏感信息。"
-  },
-  "answer": {
-    "choice": "B",
-    "why": "JWT的优点之一是无需在服务器存储认证凭证，这是因为JWT自包含了认证信息。其他选项包含了普遍的错误认识：JWT的Payload部分是经过Base64编码而非加密，JWT不仅限于HTTP请求的Header，JWT的Signature部分用于验证数据的完整性和真实性，而不是存储敏感信息。"
-  }
+AI: {
+"question": "在一个HTTP请求的处理过程中,如果WSGI服务器从TCP套接字读取数据时发现连接已关闭,会发生什么?",
+"choices": {
+"A": "WSGI服务器会忽略这个请求,继续等待新的请求",
+"B": "WSGI服务器会尝试重新连接客户端,并继续处理请求",
+"C": "WSGI服务器会将这个异常情况传递给Flask应用,由应用决定如何处理",
+"D": "WSGI服务器会直接返回一个500 Internal Server Error响应给客户端",
+"E": "WSGI服务器会记录错误日志,然后终止当前的请求处理过程"
+},
+"answer": {
+"choice": "E",
+"why": "当WSGI服务器在读取请求数据时发现连接已关闭,通常意味着客户端在发送完请求之前就异常断开了连接。这种情况下,WSGI服务器无法获取完整的请求数据,也就无法继续处理这个请求。它会记录这个异常情况的日志,然后终止当前的请求处理过程,开始等待下一个请求。这个异常不会传递给Flask应用层,因为请求数据不完整,WSGI服务器无法初始化Flask应用。当然,具体的处理方式可能会因不同的WSGI服务器实现而略有差异,但一般都会采取记录错误并终止请求的措施。"
 }
-```
+}
