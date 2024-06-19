@@ -141,6 +141,9 @@ class MultiChoiceService():
             print(e)
             raise e
         return ret
+    
+    def invoke_full(self, content: str, model: str | None):
+        pass
 
 
     def invoke(self, content: str, model: str | None, pick_best=True, oneshot=False):
@@ -228,10 +231,9 @@ class MultiChoiceService():
 
             @async_wrapper
             def async_oneshot(content, model):
-                return self.invoke_oneshot(content, model)
+                results["oneshot"] = self.invoke_oneshot(content, model)
             
-            loop = asyncio.get_event_loop()
-            results["oneshot"] = loop.run_until_complete(async_oneshot(content, model))
+            results["oneshot"] = asyncio.run(async_oneshot(content, model))
 
         self.log_history("history.txt", "tmp")
 
