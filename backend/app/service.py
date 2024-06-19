@@ -11,6 +11,8 @@ import os
 from .model import LLMBackend, Prompt, ModelVendor
 from .schema import PlayWright as PromptSchema, Evaluation, EvaluationFailed, TextTypeMap
 from .config import VALID_QUIZ_SCORE
+from .utils import async_wrapper
+import asyncio
 
 langchain.debug = True
 
@@ -221,9 +223,15 @@ class MultiChoiceService():
             results["best"] = ret_best
 
 
-        # TODO: use async or multithreading
+        # TODO: try async or multithreading
         if oneshot:
-            results["oneshot"] = self.invoke_oneshot(content, model)
+
+            @async_wrapper
+            def async_oneshot(content, model):
+                return self.invoke_oneshot(content, model)
+            
+            loop = asyncio.get_event_loop()
+            results["oneshot"] = loop.run_until_complete(async_oneshot(content, model))
 
         self.log_history("history.txt", "tmp")
 
