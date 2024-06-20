@@ -13,6 +13,7 @@ from .schema import PlayWright as PromptSchema, Evaluation, EvaluationFailed, Te
 from .config import VALID_QUIZ_SCORE
 from .utils import async_wrapper
 import asyncio
+from asyncio import Task
 
 langchain.debug = True
 
@@ -130,7 +131,7 @@ class MultiChoiceService():
         with open(path, "w", encoding="utf-8") as file:
             file.write(str(self.store[key]))
 
-    def invoke_oneshot(self, content: str, model: str | None):
+    async def invoke_oneshot(self, content: str, model: str | None):
         prompt = ChatPromptTemplate.from_template(template=oneshot_promot)
         llm = self.load_llm(model)
         parser = JsonOutputParser(pydantic_object=MultiChoice)
@@ -141,12 +142,9 @@ class MultiChoiceService():
             print(e)
             raise e
         return ret
-    
-    def invoke_full(self, content: str, model: str | None):
-        pass
 
 
-    def invoke(self, content: str, model: str | None, pick_best=True, oneshot=False):
+    async def invoke(self, content: str, model: str | None, pick_best=True, oneshot=False):
 
         prompt = ChatPromptTemplate.from_messages(
             [
@@ -158,6 +156,8 @@ class MultiChoiceService():
         runnable = prompt | llm
         
         results = {}
+        if oneshot:
+            oneshot_task = asyncio.create_task(self.invoke_oneshot(content, model))
 
         # create history based chain
         with_message_history = RunnableWithMessageHistory(
@@ -225,15 +225,8 @@ class MultiChoiceService():
             )
             results["best"] = ret_best
 
-
-        # TODO: try async or multithreading
         if oneshot:
-
-            @async_wrapper
-            def async_oneshot(content, model):
-                results["oneshot"] = self.invoke_oneshot(content, model)
-            
-            results["oneshot"] = asyncio.run(async_oneshot(content, model))
+            results["oneshot"] = await oneshot_task
 
         self.log_history("history.txt", "tmp")
 

@@ -53,7 +53,7 @@ automcRouter = APIRouter(
 )
 
 @automcRouter.post("/generate")
-def generate(req: GenRequest, db: Session = Depends(get_db)):
+async def generate(req: GenRequest, db: Session = Depends(get_db)):
     llm_srv = service.LLMBackendService(db)
     prompt_srv = service.PromptService(db)
     llm = llm_srv.get(req.llm_id)
@@ -61,6 +61,7 @@ def generate(req: GenRequest, db: Session = Depends(get_db)):
         raise HTTPException(status_code=404, detail="llm not found")
     
     srv = service.MultiChoiceService(llm)
-    return srv.invoke(req.content, req.model,
+    ret = await srv.invoke(req.content, req.model,
                       pick_best=req.pick_best,
                       oneshot=req.oneshot)
+    return ret
