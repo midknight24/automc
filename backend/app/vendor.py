@@ -44,7 +44,7 @@ class AnthropicProxy(ModelProxy):
             raise TypeError("key param missing")
         
         if "model" not in kwargs or kwargs["model"] == "":
-            model = "claude-3-opus-20240229"
+            model = "claude-3-5-sonnet-20240620"
         else:
             model = kwargs["model"]
 
