@@ -1,6 +1,7 @@
 import logo from './logo.svg';
 import './App.css';
 import { Layout, theme } from 'antd';
+import { Board } from './components/Board';
 
 const { Header, Content, Footer } = Layout;
 
@@ -29,7 +30,7 @@ function App() {
               borderRadius: borderRadiusLG,
             }}
           >
-            Content
+            <Board></Board>
           </div>
         </Content>
         <Footer style={{ textAlign: 'center' }}>
