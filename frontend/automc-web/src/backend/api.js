@@ -11,11 +11,19 @@ export const UpdateURL = (newURL) => {
 }
 
 export const genQuiz = async (data) => {
-    const resposne = await apiClient.post('/multichoices/generate', data)
-    return resposne.data    
+    try {
+        const resposne = await apiClient.post('/multichoices/generate', data)
+        return resposne.data    
+    } catch(err) {
+        console.log(err)
+    }
 }
 
 export const getLLM = async () => {
-    const resposne = await axios.get('/backends')
-    return resposne.data
+    try {
+        const resposne = await axios.get('/backends')
+        return resposne.data
+    } catch(err) {
+        console.log(err)
+    }
 }

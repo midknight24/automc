@@ -1,4 +1,4 @@
-import { Form, Input, Select, message } from 'antd'
+import { Form, Input, Select, message, Button, Space, Divider  } from 'antd'
 import { useState, useEffect } from 'react'
 import { getLLM } from '../backend/api'
 
@@ -15,20 +15,23 @@ export function QuizForm() {
     } catch(err) {
       message.error(err)
     }
-  }, [])
+  }, [form,form.getFieldValue('backendUrl')])
 
 
   return (
+    <>
+    <Space.Compact block style={{marginBottom: '10px'}}>
+      <Input placeholder="backend addr"/>
+      <Button type="primary">Submit</Button>
+    </Space.Compact>
     <Form
       form={form}
       onFinish
     >
-      <Form.Item name="backendUrl" label="url">
-        <Input></Input>
-      </Form.Item>
       <Form.Item name="llm" label="llm">
         <Select options={options}></Select>
       </Form.Item>
     </Form>
+    </>
   )
 }
