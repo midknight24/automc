@@ -1,10 +1,21 @@
 import axios from 'axios';
 
-export const genQuiz = async (url, data) => {
-    try {
-        const resposne = await axios.post(url, data)
-        return resposne.data
-    } catch(error) {
-        throw new Error()
-    }
+const apiClient = axios.create({
+    baseURL: '',
+    timeout: 1000,
+    headers: { 'Content-Type': 'application/json' }
+});
+
+export const UpdateURL = (newURL) => {
+    apiClient.baseURL = newURL
+}
+
+export const genQuiz = async (data) => {
+    const resposne = await apiClient.post('/multichoices/generate', data)
+    return resposne.data    
+}
+
+export const getLLM = async () => {
+    const resposne = await axios.get('/backends')
+    return resposne.data
 }
