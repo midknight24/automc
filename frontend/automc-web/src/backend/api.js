@@ -7,7 +7,8 @@ const apiClient = axios.create({
 });
 
 export const UpdateURL = (newURL) => {
-    apiClient.baseURL = newURL
+    console.log("updated client url")
+    apiClient.defaults.baseURL = newURL
 }
 
 export const genQuiz = async (data) => {
@@ -21,7 +22,7 @@ export const genQuiz = async (data) => {
 
 export const getLLM = async () => {
     try {
-        const resposne = await axios.get('/backends')
+        const resposne = await apiClient.get('/backends')
         return resposne.data
     } catch(err) {
         console.log(err)
