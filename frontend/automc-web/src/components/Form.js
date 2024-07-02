@@ -2,11 +2,12 @@ import { Form, Input, Select, Button, Space, Switch  } from 'antd'
 import { useState } from 'react'
 import { getLLM, UpdateURL } from '../backend/api'
 
-export function QuizForm() {
+export function QuizForm({onQuizSubmit}) {
   const [form] = Form.useForm()
   const [url, setUrl] = useState('');
   const [options, setOptions] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [submitting, setFormSubmitting] = useState(false);
 
   const UpdateSelect = async () => {
     console.log("updating api addr: ", url)
@@ -18,6 +19,10 @@ export function QuizForm() {
       return {value: el.id, label: el.model_vendor}
     }))
     setLoading(false)
+  }
+
+  const SubmitForm = async (values) => {
+    console.log(values)
   }
 
   const handleInputChange = (e) => {
@@ -49,7 +54,7 @@ export function QuizForm() {
         <Input.TextArea autoSize={{ minRows: 7, maxRows: 20 }} />
       </Form.Item>
     </Form>
-    <Button block type="primary">Submit</Button>
+    <Button block type="primary" onClick={SubmitForm} loading={submitting}>Submit</Button>
     </>
   )
 }
