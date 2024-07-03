@@ -4,7 +4,7 @@ import { Result } from './Result.js'
 import { useState } from 'react'
 
 export function Board() {
-  const [result, setResult] = useState("");
+  const [result, setResult] = useState({});
 
   const handleQuizSubmit = (data) => {
     setResult(data);
@@ -17,7 +17,7 @@ export function Board() {
           <QuizForm onSubmitReturn={handleQuizSubmit}></QuizForm>
         </Col>
         <Col span={12}>
-          <Result data={result}></Result>
+          <Result data={JSON.stringify(result, null, 2)}></Result>
         </Col>
       </Row>
     </>

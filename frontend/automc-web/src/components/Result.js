@@ -1,9 +1,9 @@
 import { Input } from 'antd'
 
-export function Result() {
+export function Result({data}) {
     return (
     <>
-        <Input.TextArea autoSize={{ minRows: 18, maxRows: 18 }} />
+        <Input.TextArea value={data} autoSize={{ minRows: 20, maxRows: 20 }} />
     </>
     )
 }
