@@ -5,7 +5,7 @@ WORKDIR /automc
 COPY . .
 
 RUN pip install -r requirements.txt && \
-    rm /automc/app/config.py /automc/app/config.py
+    rm -f /automc/app/config.py /automc/app/config.py
 
 EXPOSE 3000
 
