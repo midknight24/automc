@@ -5,7 +5,7 @@ WORKDIR /automc
 COPY . .
 
 RUN pip install -r requirements.txt && \
-    rm -f /automc/app/config.py /automc/app/config.py
+    rm -f /automc/app/config.py alembic.ini
 
 EXPOSE 3000
 
