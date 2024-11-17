@@ -2,7 +2,7 @@
 
 set -e
 
-alembic revision --autogenerate -m "new migration"
+# alembic revision --autogenerate -m "new migration"
 
 alembic upgrade head
 
