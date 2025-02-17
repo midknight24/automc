@@ -41,7 +41,7 @@ def load_oneshot(path):
         return file.read()
 
 playwright = load_playwright(path="prompt.yaml")
-oneshot_promot = load_oneshot(path="prompt-oneshot.yaml")
+oneshot_promot = load_oneshot(path="prompt-oneshot.txt")
 
 class CRUDBase():
     session: Session
