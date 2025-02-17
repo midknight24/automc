@@ -1,8 +1,8 @@
-"""added tables
+"""new start
 
-Revision ID: a6b545867749
+Revision ID: 7d478e0aa3e3
 Revises: 
-Create Date: 2024-05-09 19:03:02.427120
+Create Date: 2025-02-17 21:30:35.742378
 
 """
 from typing import Sequence, Union
@@ -11,8 +11,9 @@ from alembic import op
 import sqlalchemy as sa
 import sqlmodel
 
+
 # revision identifiers, used by Alembic.
-revision: str = 'a6b545867749'
+revision: str = '7d478e0aa3e3'
 down_revision: Union[str, None] = None
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
@@ -28,13 +29,14 @@ def upgrade() -> None:
     sa.Column('description', sqlmodel.sql.sqltypes.AutoString(), nullable=False),
     sa.Column('url', sqlmodel.sql.sqltypes.AutoString(), nullable=False),
     sa.Column('secret', sqlmodel.sql.sqltypes.AutoString(), nullable=False),
+    sa.Column('model_vendor', sa.Enum('OPENAI', 'ANTHROPIC', 'DEEPSEEK', name='modelvendor'), nullable=True),
     sa.PrimaryKeyConstraint('id')
     )
     op.create_table('prompt',
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('created', sa.DateTime(), nullable=False),
     sa.Column('updated', sa.DateTime(), nullable=False),
-    sa.Column('template', sqlmodel.sql.sqltypes.AutoString(), nullable=False),
+    sa.Column('template', sa.TEXT(), nullable=True),
     sa.PrimaryKeyConstraint('id')
     )
     # ### end Alembic commands ###

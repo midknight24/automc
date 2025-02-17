@@ -1,9 +1,9 @@
-from sqlmodel import SQLModel, Field, TEXT, create_engine, Session
+from sqlmodel import SQLModel, Field, TEXT, create_engine, Session, Enum
 from sqlalchemy import Column, event
 from sqlalchemy.event import listen
 from datetime import datetime
 from typing import Optional
-from enum import Enum
+from enum import Enum as oEnum
 
 
 class Base(SQLModel):
@@ -15,7 +15,7 @@ class Base(SQLModel):
 class Prompt(Base, table=True):
     template: str = Field(sa_column=Column(TEXT))
 
-class ModelVendor(Enum):
+class ModelVendor(oEnum):
     OPENAI = "openai"
     ANTHROPIC = "anthropic"
     DEEPSEEK = "deepseek"
@@ -25,7 +25,7 @@ class LLMBackend(Base, table=True):
     description: str = Field()
     url: str = Field()
     secret: str = Field()
-    model_vendor: ModelVendor = Field()
+    model_vendor: ModelVendor = Field(sa_column=Column(Enum(ModelVendor)))
 
 def update_time(mapper, connection, target):
     target.updated = datetime.now()

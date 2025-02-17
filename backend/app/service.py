@@ -123,6 +123,9 @@ class MultiChoiceService():
         elif self.llm.model_vendor == ModelVendor.ANTHROPIC:
             from .vendor import AnthropicProxy
             llm = AnthropicProxy().chat_model(url=self.llm.url, key=self.llm.secret, model=model)
+        elif self.llm.model_vendor == ModelVendor.DEEPSEEK:
+            from .vendor import DeepseekProxy
+            llm = DeepseekProxy().chat_model(url=self.llm.url, key=self.llm.secret, model=model)
         if not llm:
             raise TypeError("unsupported llm vendor")
         return llm
