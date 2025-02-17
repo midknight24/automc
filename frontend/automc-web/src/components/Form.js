@@ -4,7 +4,7 @@ import { getLLM, UpdateURL, genQuiz } from '../backend/api'
 
 export function QuizForm({onSubmitReturn}) {
   const [form] = Form.useForm()
-  const [url, setUrl] = useState('http://localhost:8000');
+  const [url, setUrl] = useState('http://localhost:18000');
   const [options, setOptions] = useState([]);
   const [loading, setLoading] = useState(false);
   const [submitting, setFormSubmitting] = useState(false);
@@ -15,7 +15,7 @@ export function QuizForm({onSubmitReturn}) {
     setLoading(true)
     const data = await getLLM()
     console.log(data)
-    setOptions(data.map((el)=>{
+    setOptions(data?.map((el)=>{
       return {value: el.id, label: el.model_vendor}
     }))
     setLoading(false)

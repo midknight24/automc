@@ -18,6 +18,7 @@ class Prompt(Base, table=True):
 class ModelVendor(Enum):
     OPENAI = "openai"
     ANTHROPIC = "anthropic"
+    DEEPSEEK = "deepseek"
 
 class LLMBackend(Base, table=True):
     name: str = Field()

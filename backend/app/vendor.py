@@ -2,6 +2,7 @@ from abc import ABC, abstractmethod
 from langchain_core.language_models.chat_models import BaseChatModel
 from langchain_openai import ChatOpenAI
 from langchain_anthropic import ChatAnthropic
+from langchain_deepseek import ChatDeepSeek
 
 
 class ModelProxy(ABC):
@@ -49,4 +50,26 @@ class AnthropicProxy(ModelProxy):
             model = kwargs["model"]
 
         llm = ChatAnthropic(anthropic_api_url=kwargs["url"], anthropic_api_key=kwargs["key"], model=model)
+        return llm
+    
+
+class DeepseekProxy(ModelProxy):
+    def chat_model(self, **kwargs):
+        """
+        chat_model returns the ChatOpenAI class instance
+        must have params:
+        - url: openai model (proxy) address
+        - key: secret key for api
+        """
+        if "url" not in kwargs:
+            raise TypeError("url param missing")
+        if "key" not in kwargs:
+            raise TypeError("key param missing")
+        
+        if "model" not in kwargs or kwargs["model"] == "":
+            model = "deepseek-reasoner"
+        else:
+            model = kwargs["model"]
+
+        llm = ChatDeepSeek(api_base=kwargs["url"], api_key=kwargs["key"], model=model)
         return llm
