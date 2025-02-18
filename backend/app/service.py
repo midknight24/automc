@@ -132,7 +132,7 @@ class MultiChoiceService():
     
     def log_history(self, path, key):
         with open(path, "w", encoding="utf-8") as file:
-            file.write(str(self.store[key]))
+            file.write(str(self.store.get(key, "")))
 
     async def invoke_oneshot(self, content: str, model: str | None):
         prompt = ChatPromptTemplate.from_template(template=oneshot_promot)
@@ -161,72 +161,72 @@ class MultiChoiceService():
         results = {}
         if oneshot:
             oneshot_task = asyncio.create_task(self.invoke_oneshot(content, model))
-
-        # create history based chain
-        with_message_history = RunnableWithMessageHistory(
-            runnable,
-            self._get_session_history,
-            input_messages_key="input",
-            history_messages_key="history"
-        )
-
-        # enter question input evaluation
-        parser = JsonOutputParser(pydantic_object=Evaluation)
-        chain = with_message_history | parser
-        intro = ChatPromptTemplate.from_template(template=playwright.intro)
-
-        rendered = intro.invoke({"content": content}).to_messages()
-        out = chain.invoke(
-            {"input": rendered},
-            config={"configurable": {"session_id": "tmp"}}
-        )
-        evalution = Evaluation(**out)
-
-        if evalution.validity < VALID_QUIZ_SCORE:
-            print(evalution)
-            return EvaluationFailed(
-                message="哦！看起来您的输入不太适合转变成选择题。。",
-                explaination=evalution.explaination
+        else:
+            # create history based chain
+            with_message_history = RunnableWithMessageHistory(
+                runnable,
+                self._get_session_history,
+                input_messages_key="input",
+                history_messages_key="history"
             )
 
+            # enter question input evaluation
+            parser = JsonOutputParser(pydantic_object=Evaluation)
+            chain = with_message_history | parser
+            intro = ChatPromptTemplate.from_template(template=playwright.intro)
 
-        # ask for more background on input topic
-        with_message_history.invoke(
-            {"input": playwright.intro2},
-            config={"configurable": {"session_id": "tmp"}}
-        )
-
-        # enter main prompt
-        parser = JsonOutputParser(pydantic_object=MultiChoice)
-        tmp_chain = with_message_history | parser
-        ret1 = tmp_chain.invoke(
-            {"input": playwright.mainPrompt},
-            config={"configurable": {"session_id": "tmp"}}   
-        )
-
-        results["full"] = ret1
-        
-
-        # ask for type specific generation
-        ret2 = tmp_chain.invoke(
-            {
-                "input": playwright.encore + '\n' + 
-                getattr(playwright.type_specs, TextTypeMap[evalution.text_type]).patch_prompt
-            },
-            config={"configurable": {"session_id": "tmp"}}
-        )
-
-        results["encore"] = ret2
-
-
-        if pick_best:
-            # ask to choose and improve final output
-            final = with_message_history | parser
-            ret_best = final.invoke(
-                {"input": playwright.pick_and_improve},
+            rendered = intro.invoke({"content": content}).to_messages()
+            out = chain.invoke(
+                {"input": rendered},
                 config={"configurable": {"session_id": "tmp"}}
             )
-            results["best"] = ret_best
+            evalution = Evaluation(**out)
+
+            if evalution.validity < VALID_QUIZ_SCORE:
+                print(evalution)
+                return EvaluationFailed(
+                    message="哦！看起来您的输入不太适合转变成选择题。。",
+                    explanation=evalution.explanation
+                )
+
+
+            # ask for more background on input topic
+            with_message_history.invoke(
+                {"input": playwright.intro2},
+                config={"configurable": {"session_id": "tmp"}}
+            )
+
+            # enter main prompt
+            parser = JsonOutputParser(pydantic_object=MultiChoice)
+            tmp_chain = with_message_history | parser
+            ret1 = tmp_chain.invoke(
+                {"input": playwright.mainPrompt},
+                config={"configurable": {"session_id": "tmp"}}   
+            )
+
+            results["full"] = ret1
+            
+
+            # ask for type specific generation
+            ret2 = tmp_chain.invoke(
+                {
+                    "input": playwright.encore + '\n' + 
+                    getattr(playwright.type_specs, TextTypeMap[evalution.text_type]).patch_prompt
+                },
+                config={"configurable": {"session_id": "tmp"}}
+            )
+
+            results["encore"] = ret2
+
+
+            if pick_best:
+                # ask to choose and improve final output
+                final = with_message_history | parser
+                ret_best = final.invoke(
+                    {"input": playwright.pick_and_improve},
+                    config={"configurable": {"session_id": "tmp"}}
+                )
+                results["best"] = ret_best
 
         if oneshot:
             results["oneshot"] = await oneshot_task
@@ -234,7 +234,8 @@ class MultiChoiceService():
         self.log_history("history.txt", "tmp")
 
         # cleanup history
-        del self.store["tmp"]
+        if "tmp" in self.store:
+            del self.store["tmp"]
 
         return results
 

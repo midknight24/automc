@@ -23,7 +23,7 @@ class OpenAIProxy(ModelProxy):
         if "key" not in kwargs:
             raise TypeError("key param missing")
         if "model" not in kwargs or kwargs["model"] == "":
-            model = "gpt-4o"
+            model = "gpt-4o-2024-11-20"
         else:
             model = kwargs["model"]
 

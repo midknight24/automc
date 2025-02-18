@@ -59,7 +59,8 @@ async def generate(req: GenRequest, db: Session = Depends(get_db)):
     llm = llm_srv.get(req.llm_id)
     if not llm:
         raise HTTPException(status_code=404, detail="llm not found")
-    
+    print(req)
+    print(req.oneshot)
     srv = service.MultiChoiceService(llm)
     ret = await srv.invoke(req.content, req.model,
                       pick_best=req.pick_best,

@@ -77,9 +77,9 @@ TextTypeMap = {v: k for k, v in TextType.__members__.items()}
 
 class Evaluation(BaseModel):
     validity: int
-    explaination: str
+    explanation: str
     text_type: TextType
 
 class EvaluationFailed(BaseModel):
     message: str
-    explaination: str
+    explanation: str

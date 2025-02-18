@@ -1,6 +1,6 @@
 version: v0.0.1
 intro: |
-  以下用```括起来的是一道从html中抓取的知识片段,所属的领域是<计算机科学>,你作为<计算机科学>领域的教育专家,请你判读一下这段文本与事实是否相符,
+  以下用```括起来的是一道从html中抓取的知识片段,你作为相关领域的教育专家,请你判读一下这段文本与事实是否相符,
   是否有不准确或者错误的地方,同时对文段的主旨进行分类,输出类型后面的英文描述：
   1. 定义并介绍某些技术、用途或使用方法(definition and introduction)
   2. 描述某技术的运行过程或原理(mechanism and procedure)
@@ -9,13 +9,13 @@ intro: |
   5. 对比多种技术的优缺点与不同之处(technical comparison)
   6. 其他(others)
 
-  使用json结构进行输出包含validity、explaination和text_type, 
-    validity从0到100,explaination为文字解释,
+  使用json结构进行输出包含validity、explanation和text_type, 
+    validity从0到100,explanation为文字解释,
     注意,假如内容不是一道问答题,需要给出validity=0
     对这个问答题与答案的评价和解读,如:
     {{
     "validity": 80,
-    "explaination"：“这篇文章介绍交换机如何根据mac地址发送以太网帧到不同电脑,大体正确,没有事实错误”
+    "explanation"：“这篇文章介绍交换机如何根据mac地址发送以太网帧到不同电脑,大体正确,没有事实错误”
     "text_type"：“definition and introduction”
     }}
   ```
@@ -49,20 +49,37 @@ mainPrompt: |
 
   请注意，错误选项中尽量不要出现过于强断言词汇，如“绝对”，“全部”，“直接”，“一定”等容易被断定是错误选项的用词
 
-  在设计好选择题后,使用json格式进行输出,json的key包含question, choices, answer, 其中answer包含正确选项choice,以及解释why
+  在设计好选择题后,使用json格式进行输出,json的key包含question和choices数组, 每个choice包含content,correct与why三个key
+  content为选项的描述，correct为选项是否正确，why为选项正确或者错误的原因，如：
   {{
   "question": "雨滴由静止开始下落,遇到水平方向吹来的风,下述说法中正确的是"
-  "choices": {{
-  "A": "风速越大,雨滴下落时间越长",
-  "B": "风速越大,雨滴着地时速度越大",
-  "C": "雨滴下落时间与风速无关",
-  "D": "雨滴着地速度与风速无关"
-  "E": "雨滴着地速度与风速有关"
-  }}
-  "answer": {{
-  "choice": "A",
-  "why": "风速越大,雨滴的纵向力越大"
-  }}
+  "choices": [
+    {{
+      "content": "风速越大,雨滴下落时间越长",
+      "correct": true,
+      "why": "风速越大,雨滴的纵向力越大"
+    }},
+    {{
+      "content": "风速越大,雨滴着地时速度越大",
+      "correct": false,
+      "why": "风速越大,雨滴着地时速度越小"
+    }},
+    {{
+      "content": "雨滴下落时间与风速无关",
+      "correct": false,
+      "why": "风速越大,雨滴在空中时间越长"
+    }},
+    {{
+      "content": "雨滴着地速度与风速无关",
+      "correct": false,
+      "why": "风速越大,雨滴着地时速度越小"
+    }},
+    {{
+      "content": "风速越大,雨滴下落时间越短",
+      "correct": false,
+      "why": "风速越大,雨滴下落时间越长"
+    }},
+  ]
   }}
 
 encore: |
@@ -78,7 +95,8 @@ pick_and_improve: |
   - 修正潜在的语病
   - 假如选项中描述了具体场景，补充解题必要的背景信息
   优化后, 重新以原本的json结构回答, 不要输出其他格式：
-  使用json格式进行输出, json的key包含question, choices, answer, 其中answer包含正确选项choice,以及解释why
+  使用json格式进行输出, json的key包含question和choices数组, 每个choice包含content,correct与why三个key，content为选项的描述，correct为选项是否正确，
+  why为选项正确或者错误的原因
 
 type_specs:
   definition:
