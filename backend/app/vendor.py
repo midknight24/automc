@@ -11,6 +11,7 @@ class ModelProxy(ABC):
         pass
     
 class OpenAIProxy(ModelProxy):
+    model = "gpt-4o-2024-11-20"
     def chat_model(self, **kwargs):
         """
         chat_model returns the ChatOpenAI class instance
@@ -23,15 +24,16 @@ class OpenAIProxy(ModelProxy):
         if "key" not in kwargs:
             raise TypeError("key param missing")
         if "model" not in kwargs or kwargs["model"] == "":
-            model = "gpt-4o-2024-11-20"
+            self.model = "gpt-4o-2024-11-20"
         else:
-            model = kwargs["model"]
+            self.model = kwargs["model"]
 
-        llm = ChatOpenAI(temperature=0.8, openai_api_base=kwargs["url"], openai_api_key=kwargs["key"], model=model)
+        llm = ChatOpenAI(temperature=0.8, openai_api_base=kwargs["url"], openai_api_key=kwargs["key"], model=self.model)
         return llm
         
 
 class AnthropicProxy(ModelProxy):
+    model = "claude-3-5-sonnet-20240620"
     def chat_model(self, **kwargs):
         """
         chat_model returns the ChatOpenAI class instance
@@ -45,15 +47,16 @@ class AnthropicProxy(ModelProxy):
             raise TypeError("key param missing")
         
         if "model" not in kwargs or kwargs["model"] == "":
-            model = "claude-3-5-sonnet-20240620"
+            self.model = "claude-3-5-sonnet-20240620"
         else:
-            model = kwargs["model"]
+            self.model = kwargs["model"]
 
-        llm = ChatAnthropic(anthropic_api_url=kwargs["url"], anthropic_api_key=kwargs["key"], model=model)
+        llm = ChatAnthropic(anthropic_api_url=kwargs["url"], anthropic_api_key=kwargs["key"], model=self.model)
         return llm
     
 
 class DeepseekProxy(ModelProxy):
+    model = "deepseek-reasoner"
     def chat_model(self, **kwargs):
         """
         chat_model returns the ChatOpenAI class instance
@@ -67,9 +70,9 @@ class DeepseekProxy(ModelProxy):
             raise TypeError("key param missing")
         
         if "model" not in kwargs or kwargs["model"] == "":
-            model = "deepseek-reasoner"
+            self.model = "deepseek-reasoner"
         else:
-            model = kwargs["model"]
+            self.model = kwargs["model"]
 
-        llm = ChatDeepSeek(api_base=kwargs["url"], api_key=kwargs["key"], model=model)
+        llm = ChatDeepSeek(api_base=kwargs["url"], api_key=kwargs["key"], model=self.model)
         return llm

@@ -114,18 +114,26 @@ class MultiChoiceService():
 
     def __init__(self, llm: LLMBackend):
         self.llm = llm
+        self.model = None
         
     def load_llm(self, model):
         llm = None
+        self.model = model
         if self.llm.model_vendor == ModelVendor.OPENAI:
             from .vendor import OpenAIProxy
             llm = OpenAIProxy().chat_model(url=self.llm.url, key=self.llm.secret, model=model)
+            if not self.model:
+                self.model = OpenAIProxy.model
         elif self.llm.model_vendor == ModelVendor.ANTHROPIC:
             from .vendor import AnthropicProxy
             llm = AnthropicProxy().chat_model(url=self.llm.url, key=self.llm.secret, model=model)
+            if not self.model:
+                self.model = AnthropicProxy.model
         elif self.llm.model_vendor == ModelVendor.DEEPSEEK:
             from .vendor import DeepseekProxy
             llm = DeepseekProxy().chat_model(url=self.llm.url, key=self.llm.secret, model=model)
+            if not self.model:
+                self.model = DeepseekProxy.model
         if not llm:
             raise TypeError("unsupported llm vendor")
         return llm
@@ -158,7 +166,11 @@ class MultiChoiceService():
         llm = self.load_llm(model)
         runnable = prompt | llm
         
-        results = {}
+        results = {
+            "model": self.model,
+            "pick_best": pick_best,
+            "oneshot": oneshot
+        }
         if oneshot:
             oneshot_task = asyncio.create_task(self.invoke_oneshot(content, model))
         else:
